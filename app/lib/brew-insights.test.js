@@ -1,0 +1,72 @@
+import { describe, it, expect } from 'vitest';
+import { buildBrewInsights, insightKeyForPhase, coffeeDisplayName } from './brew-insights';
+
+const NOW = Date.parse('2026-08-12T12:00:00Z');
+
+describe('brew insights — the coffee-aware assist', () => {
+  it('speaks about freshness at the bloom', () => {
+    const gassy = buildBrewInsights({
+      coffeeData: { name: 'Fresh Lot', roastedOn: '2026-08-10' },
+      brewData: { device: 'V60 02' }, recipe: {}, now: NOW,
+    });
+    expect(gassy.bloom.join(' ')).toMatch(/CO₂|dome/i);
+
+    const stale = buildBrewInsights({
+      coffeeData: { name: 'Old Lot', roastedOn: '2026-05-01' },
+      brewData: { device: 'V60 02' }, recipe: {}, now: NOW,
+    });
+    expect(stale.bloom.join(' ')).toMatch(/don’t expect much rise/i);
+  });
+
+  it('warns about natural-process drawdown and fermented aromas', () => {
+    const nat = buildBrewInsights({ coffeeData: { process: 'Natural' }, brewData: {}, recipe: {}, now: NOW });
+    expect(nat.drawdown.join(' ')).toMatch(/fines|crawl/i);
+    const ana = buildBrewInsights({ coffeeData: { process: 'Anaerobic' }, brewData: {}, recipe: {}, now: NOW });
+    expect(ana.bloom.join(' ')).toMatch(/wild|boozy/i);
+  });
+
+  it('coaches gentle pours for delicate cultivars', () => {
+    const gesha = buildBrewInsights({ coffeeData: { variety: 'Gesha' }, brewData: {}, recipe: {}, now: NOW });
+    expect(gesha.pour.join(' ')).toMatch(/delicate|low and slow/i);
+  });
+
+  it('sets drawdown expectations for fast paper and boosters', () => {
+    const out = buildBrewInsights({
+      coffeeData: {},
+      brewData: { device: 'V60 02', filter: 'sibarist_fast', booster: 'booster_cone' },
+      recipe: {}, now: NOW,
+    });
+    expect(out.drawdown.join(' ')).toMatch(/fast paper|quicker/i);
+    expect(out.drawdown.join(' ')).toMatch(/booster/i);
+  });
+
+  it('tells you what to taste for at the finish', () => {
+    const out = buildBrewInsights({
+      coffeeData: { name: 'Yirg' }, brewData: {},
+      recipe: { flavorNotes: ['Floral', 'Citrus', 'Stone fruit'], adjusted: true }, now: NOW,
+    });
+    expect(out.finish.join(' ')).toMatch(/floral, citrus, stone fruit/);
+    expect(out.finish.join(' ')).toMatch(/saved correction/i);
+  });
+
+  it('returns empty buckets for a sparse coffee — the generic voice takes over', () => {
+    const out = buildBrewInsights({ coffeeData: {}, brewData: {}, recipe: {}, now: NOW });
+    expect(out.bloom).toEqual([]);
+    expect(out.pour).toEqual([]);
+    expect(out.prep).toEqual([]);
+  });
+
+  it('classifies phases into insight buckets', () => {
+    expect(insightKeyForPhase({ kind: 'prep', name: 'Rinse & dose' }, 0)).toBe('prep');
+    expect(insightKeyForPhase({ kind: 'pour', name: 'Bloom' }, 0)).toBe('bloom');
+    expect(insightKeyForPhase({ kind: 'pour', name: 'Pour 2' }, 2)).toBe('pour');
+    expect(insightKeyForPhase({ kind: 'wait', name: 'Drawdown' }, 5)).toBe('drawdown');
+    expect(insightKeyForPhase({ kind: 'wait', name: 'Steep' }, 3)).toBe('wait');
+  });
+
+  it('names the coffee it can', () => {
+    expect(coffeeDisplayName({ name: 'Lot 4' })).toBe('Lot 4');
+    expect(coffeeDisplayName({ origin: 'Kenya', variety: 'SL28' })).toBe('Kenya SL28');
+    expect(coffeeDisplayName({})).toBe('this coffee');
+  });
+});

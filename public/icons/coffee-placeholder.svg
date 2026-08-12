@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <rect width="200" height="200" rx="20" fill="#EBE5DC"/>
+  <g transform="translate(60, 45)">
+    <!-- Coffee bag body -->
+    <rect x="5" y="30" width="70" height="80" rx="6" fill="#D4C5B3" stroke="#C2B19D" stroke-width="2"/>
+    <!-- Bag top fold -->
+    <path d="M5 40 Q40 20 75 40" fill="#D4C5B3" stroke="#C2B19D" stroke-width="2"/>
+    <!-- Coffee bean -->
+    <ellipse cx="40" cy="70" rx="14" ry="18" fill="#8B7355" stroke="#7A6348" stroke-width="1.5"/>
+    <path d="M40 55 Q38 70 40 85" stroke="#6B5540" stroke-width="1.5" fill="none"/>
+    <!-- Steam lines -->
+    <path d="M30 28 Q28 18 32 10" stroke="#C2B19D" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M40 25 Q38 15 42 7" stroke="#C2B19D" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M50 28 Q48 18 52 10" stroke="#C2B19D" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>
