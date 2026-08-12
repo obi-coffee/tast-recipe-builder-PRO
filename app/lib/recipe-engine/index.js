@@ -17,7 +17,7 @@ import { getVarietyAdjustment } from '../../data/brewing/varieties';
 import { getElevationAdjustment } from '../../data/brewing/elevation';
 import { getFreshnessAdjustment } from '../../data/brewing/freshness';
 import { getWaterAdjustment } from '../../data/brewing/water';
-import { getFilterAdjustment } from '../../data/brewing/filters';
+import { getFilterAdjustment, shiftTimeLabel } from '../../data/brewing/filters';
 import { getMethod } from '../../data/brewing/methods';
 import { GRINDERS } from '../../data/grinders';
 import { computeGrind, grindStepHint } from './grind';
@@ -201,7 +201,15 @@ export function buildRecipe({ coffeeData = {}, brewData = {}, now = Date.now() }
   }
 
   // ── Steps ──────────────────────────────────────────────────────────
-  const totalTime = mo?.totalTime || device.totalTime;
+  // A fast/slow paper reshapes the brew window itself — but only on the
+  // generic templates ('filter'/'flash'), where pour spacing derives from the
+  // window. Maker timelines (Kasuya, Rao, Orea plans) keep their own clocks;
+  // their pour cues are published numbers, and the paper note carries the
+  // timing story instead.
+  const baseTotalTime = mo?.totalTime || device.totalTime;
+  const totalTime = (filter.timeFactor && (stepStyle === 'filter' || stepStyle === 'flash'))
+    ? shiftTimeLabel(baseTotalTime, filter.timeFactor)
+    : baseTotalTime;
   // Orea recipes may split the total into poured water + ice + bypass.
   const oreaBrewWater = Math.round(waterG * (mo?.hotFraction ?? 1));
   const oreaIce = Math.round(waterG * (mo?.iceFraction ?? 0));

@@ -31,24 +31,41 @@
 export const FILTER_SPEEDS = {
   standard: {
     id: 'standard', label: 'Standard paper',
-    grindTDelta: 0, timeShift: null, note: '',
+    grindTDelta: 0, timeShift: null, timeFactor: null, note: '',
   },
   fast: {
     id: 'fast', label: 'Fast-flow paper',
-    grindTDelta: -0.10, timeShift: 'faster',
-    note: 'Fast-flow paper drains well ahead of standard — we’ve set the grind notably finer to keep contact time, and the brew should still finish toward (or under) the fast end of the window. Expect a clean, silky, high-clarity cup.',
+    // Calibrated to Sibarist's own "significantly finer" guidance and user
+    // reports (~2–4 C40 clicks): −0.18 of the brew band ≈ 2 clicks on a
+    // Comandante, ~7 on a JX-Pro — visible even on stepped grinders.
+    grindTDelta: -0.18, timeShift: 'faster', timeFactor: 0.75,
+    note: 'Fast-flow paper drains well ahead of standard — we’ve set the grind notably finer to keep contact time, and the brew window shown is already shortened to match. Expect a clean, silky, high-clarity cup.',
   },
   modfast: {
     id: 'modfast', label: 'Moderately fast paper',
-    grindTDelta: -0.05, timeShift: 'faster',
-    note: 'This paper flows moderately faster than standard — grind sits a touch finer to compensate. Expect a sweeter, more textured cup that keeps its clarity.',
+    grindTDelta: -0.08, timeShift: 'faster', timeFactor: 0.9,
+    note: 'This paper flows moderately faster than standard — grind sits a touch finer to compensate, and the brew window is trimmed slightly. Expect a sweeter, more textured cup that keeps its clarity.',
   },
   slow: {
     id: 'slow', label: 'Slow-flow paper',
-    grindTDelta: +0.02, timeShift: 'slower',
-    note: 'High-resistance paper extends the drawdown — that’s the point. Let it run past the usual window before judging; the payoff is an exceptionally clean cup. If it truly stalls, coarsen a step.',
+    grindTDelta: +0.02, timeShift: 'slower', timeFactor: 1.25,
+    note: 'High-resistance paper extends the drawdown — that’s the point; the brew window shown is already stretched to match. The payoff is an exceptionally clean cup. If it truly stalls, coarsen a step.',
   },
 };
+
+/**
+ * Scale every m:ss occurrence in a brew-time label ("2:30–3:30" → "1:50–2:40"
+ * at ×0.75), rounding to a clean 10 seconds. Labels without m:ss times
+ * (espresso "25–35s", cold "12–18 hours") pass through untouched.
+ */
+export function shiftTimeLabel(label, factor) {
+  if (!factor || factor === 1 || !label) return label;
+  return String(label).replace(/(\d+):([0-5]\d)/g, (_m, mm, ss) => {
+    const s = (parseInt(mm, 10) * 60 + parseInt(ss, 10)) * factor;
+    const r = Math.max(10, Math.round(s / 10) * 10);
+    return `${Math.floor(r / 60)}:${String(r % 60).padStart(2, '0')}`;
+  });
+}
 
 // Filter shapes per brewer — gates which papers the UI offers. 'disc' covers
 // AeroPress-style flat discs. Devices not listed (espresso, moka, French
@@ -102,7 +119,7 @@ export const BOOSTER_EFFECT = {
   note: 'Booster in: the mesh adds contact points under the bed, so the drawdown runs faster and — more importantly — more even. We’ve nudged the grind slightly finer to use that headroom; channeling and stalls shouldn’t be part of this brew.',
 };
 
-const NEUTRAL = { speed: 'standard', grindTDelta: 0, timeShift: null, notes: [], label: '' };
+const NEUTRAL = { speed: 'standard', grindTDelta: 0, timeShift: null, timeFactor: null, notes: [], label: '', boosted: false };
 
 export function getFilterShape(deviceName) {
   return DEVICE_FILTER_SHAPES[deviceName] || null;
@@ -150,6 +167,7 @@ export function getFilterAdjustment(filterId, boosterId, deviceName) {
     label: preset && preset.id !== 'standard' ? preset.label : '',
     grindTDelta: speed.grindTDelta + (boosterOk ? BOOSTER_EFFECT.grindTDelta : 0),
     timeShift: speed.timeShift,
+    timeFactor: speed.timeFactor,
     boosted: !!boosterOk,
     notes,
   };
