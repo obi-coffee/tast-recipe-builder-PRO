@@ -544,13 +544,14 @@ export default function Home() {
     }}>
       <div className="container" style={{ maxWidth: '580px', margin: '0 auto' }}>
 
-        {/* Header */}
+        {/* Header — two rows for mobile: brand line, then actions line */}
         <header className={`app-header${scrolled ? ' scrolled' : ''}`} style={{ marginBottom: '12px' }}>
+          {/* Row 1: logo (anchored left) + PRO wordmark (right) */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '8px 0 14px'
+            padding: '8px 0 2px'
           }}>
             <button
               onClick={() => { setShowSaved(!showSaved); setShowHistory(false); setShowSettings(false); setShowAccount(false); }}
@@ -564,52 +565,56 @@ export default function Home() {
               <img src="/brand/logo-flat-ivory.svg" alt="tāst" className="brand-logo-dark" style={{ height: scrolled ? '18px' : '22px', width: 'auto' }} />
               {savedRecipes.length > 0 && <span style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', color: 'var(--text-tertiary)', fontWeight: 400 }}>· {savedRecipes.length}</span>}
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="pro-badge" aria-label="Pour Pal PRO">Pour Pal PRO</span>
+          </div>
+
+          {/* Row 2: Cupping + Journal (left) · Sign in / avatar + gear (right) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 0 14px' }}>
+            <button
+              onClick={() => { setShowCupping(true); setShowSaved(false); setShowSettings(false); setShowAccount(false); setShowHistory(false); }}
+              className="notion-button-secondary"
+              style={{ padding: '8px 14px', fontSize: '13px' }}
+              aria-label="Start a cupping session"
+            >
+              Cupping
+            </button>
+            {/* Journal is local-first (localStorage signed-out, cloud signed-in) */}
+            <button
+              onClick={() => { setShowHistory(!showHistory); setShowSaved(false); setShowSettings(false); setShowAccount(false); }}
+              className="notion-button-secondary"
+              style={{ padding: '8px 14px', fontSize: '13px' }}
+              aria-label="Brew journal"
+            >
+              Journal
+            </button>
+            <span style={{ flex: 1 }} />
+            {user ? (
               <button
-                onClick={() => { setShowCupping(true); setShowSaved(false); setShowSettings(false); setShowAccount(false); setShowHistory(false); }}
+                onClick={() => { setShowAccount(!showAccount); setShowSaved(false); setShowSettings(false); setShowHistory(false); }}
+                className="avatar-btn"
+                aria-label="Account"
+                title={user.email}
+              >
+                {user.email?.[0]?.toUpperCase() || '·'}
+              </button>
+            ) : (
+              <button
+                onClick={() => { setShowAccount(!showAccount); setShowSaved(false); setShowSettings(false); setShowHistory(false); }}
                 className="notion-button-secondary"
                 style={{ padding: '8px 14px', fontSize: '13px' }}
-                aria-label="Start a cupping session"
+                aria-label="Sign in"
               >
-                Cupping
+                Sign in
               </button>
-              {/* Journal is local-first (localStorage signed-out, cloud signed-in) */}
-              <button
-                onClick={() => { setShowHistory(!showHistory); setShowSaved(false); setShowSettings(false); setShowAccount(false); }}
-                className="notion-button-secondary"
-                style={{ padding: '8px 14px', fontSize: '13px' }}
-                aria-label="Brew journal"
-              >
-                Journal
-              </button>
-              <button
-                onClick={() => { setShowSettings(!showSettings); setShowSaved(false); setShowHistory(false); setShowAccount(false); }}
-                className="icon-btn"
-                aria-label="Settings"
-                title="Settings"
-              >
-                <img src="/icons/settings.svg" alt="" className="notion-icon notion-icon-secondary" />
-              </button>
-              {user ? (
-                <button
-                  onClick={() => { setShowAccount(!showAccount); setShowSaved(false); setShowSettings(false); setShowHistory(false); }}
-                  className="avatar-btn"
-                  aria-label="Account"
-                  title={user.email}
-                >
-                  {user.email?.[0]?.toUpperCase() || '·'}
-                </button>
-              ) : (
-                <button
-                  onClick={() => { setShowAccount(!showAccount); setShowSaved(false); setShowSettings(false); setShowHistory(false); }}
-                  className="notion-button-secondary"
-                  style={{ padding: '8px 14px', fontSize: '13px' }}
-                  aria-label="Sign in"
-                >
-                  Sign in
-                </button>
-              )}
-            </div>
+            )}
+            <button
+              onClick={() => { setShowSettings(!showSettings); setShowSaved(false); setShowHistory(false); setShowAccount(false); }}
+              className="gear-btn"
+              aria-label="Settings"
+              title="Settings"
+            >
+              <img src="/icons/settings.svg" alt="" className="notion-icon notion-icon-secondary" style={{ width: '20px', height: '20px' }} />
+            </button>
           </div>
           {/* Progress Bar */}
           <div className="progress-bar">

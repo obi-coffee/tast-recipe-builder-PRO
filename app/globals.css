@@ -412,6 +412,33 @@ html {
   .brand-logo-dark { display: block; }
 }
 
+/* --- PRO wordmark (header row 1, right) --- */
+
+.pro-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-pressed);
+  white-space: nowrap;
+}
+
+/* --- Bare gear (header row 2, right) — icon only, no chip --- */
+
+.gear-btn {
+  background: none;
+  border: none;
+  padding: 6px;
+  margin: -6px -6px -6px 0; /* visual flush-right while keeping a 32px+ hit area */
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+}
+.gear-btn:hover img { filter: var(--icon-filter); }
+
 /* --- Step Progress Bar --- */
 
 .progress-bar {
