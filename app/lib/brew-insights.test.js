@@ -49,6 +49,30 @@ describe('brew insights — the coffee-aware assist', () => {
     expect(out.finish.join(' ')).toMatch(/saved correction/i);
   });
 
+  it('coaches bed-state pouring when a maker recipe meets a non-standard paper', () => {
+    const brewData = { device: 'Orea V4', grinder: 'Comandante C40', filter: 'sibarist_fast' };
+    const maker = buildBrewInsights({
+      coffeeData: { name: 'Dara Lot' }, brewData,
+      recipe: { method: 'orea_v4_dara' }, now: NOW,
+    });
+    expect(maker.pour.join(' ')).toMatch(/pour on the bed, not the timestamp/i);
+    // Slow paper flips the coaching direction (cone brewer — SLOW is cone-only).
+    const slow = buildBrewInsights({
+      coffeeData: { name: 'Kasuya Lot' },
+      brewData: { device: 'V60 02', grinder: 'Comandante C40', filter: 'sibarist_slow' },
+      recipe: { method: 'kasuya46' }, now: NOW,
+    });
+    expect(slow.pour.join(' ')).toMatch(/let the bed nearly clear/i);
+    // Balanced method or standard paper → no line.
+    const balanced = buildBrewInsights({ coffeeData: {}, brewData, recipe: { method: 'balanced' }, now: NOW });
+    expect(balanced.pour.join(' ')).not.toMatch(/timestamp/i);
+    const stdPaper = buildBrewInsights({
+      coffeeData: {}, brewData: { device: 'Orea V4', filter: 'standard' },
+      recipe: { method: 'orea_v4_dara' }, now: NOW,
+    });
+    expect(stdPaper.pour.join(' ')).not.toMatch(/timestamp/i);
+  });
+
   it('returns empty buckets for a sparse coffee — the generic voice takes over', () => {
     const out = buildBrewInsights({ coffeeData: {}, brewData: {}, recipe: {}, now: NOW });
     expect(out.bloom).toEqual([]);

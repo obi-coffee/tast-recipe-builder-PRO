@@ -106,6 +106,16 @@ export function buildBrewInsights({ coffeeData = {}, brewData = {}, recipe = {},
     out.drawdown.push(`With the booster under the bed, the drain should run even and stall-free — a flat bed at the end is the tell.`);
   }
 
+  // Maker recipe + non-standard paper: the published clock stays faithful to
+  // the maker (we never rewrite their timestamps), so coach the user to brew
+  // by bed state instead of the clock.
+  const isMakerMethod = recipe.method && recipe.method !== 'balanced';
+  if (isMakerMethod && filter.timeShift === 'faster') {
+    out.pour.push(`Your paper runs quicker than this recipe's clock — the timestamps are the maker's cues, not commands. Pour on the bed, not the timestamp.`);
+  } else if (isMakerMethod && filter.timeShift === 'slower') {
+    out.pour.push(`Your slow paper holds water longer than this recipe's clock expects — let the bed nearly clear before each pour, even if the timestamp says go.`);
+  }
+
   // ── Roast level → why this water temperature ─────────────────────────
   const roast = coffeeData.roastLevel;
   if (roast && recipe.temperature) {
