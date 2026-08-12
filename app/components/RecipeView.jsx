@@ -89,7 +89,7 @@ export default function RecipeView({
             <span key={i} className="flavor-pill">{note}</span>
           ))}
         </div>
-        <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+        <p className="body-prose" style={{ margin: 0, color: 'var(--text-secondary)' }}>
           {tempify(recipe.expectedProfile)}
         </p>
       </div>
@@ -186,7 +186,7 @@ export default function RecipeView({
                 <div style={{ fontWeight: 600, fontSize: '15px', color: 'var(--text-primary)' }}>{s.step || s.phase}</div>
                 <div style={{ fontSize: '12px', color: 'var(--accent)', fontFamily: 'var(--font-mono)', fontWeight: 500 }}>{s.target}</div>
               </div>
-              <div style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+              <div className="body-prose" style={{ color: 'var(--text-secondary)' }}>
                 {tempify(s.technique)}
               </div>
               {s.why && (
@@ -418,7 +418,7 @@ function EditableParam({ label, value, onMinus, onPlus }) {
       <div className="eyebrow" style={{ marginBottom: '6px', fontSize: '10px' }}>{label}</div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
         <button onClick={onMinus} style={btn} aria-label={`Decrease ${label}`}>−</button>
-        <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3, minWidth: '44px' }}>{value}</div>
+        <div style={{ fontFamily: 'var(--font-serif)', fontSize: '19px', fontWeight: 400, color: 'var(--text-primary)', lineHeight: 1.25, minWidth: '44px' }}>{value}</div>
         <button onClick={onPlus} style={btn} aria-label={`Increase ${label}`}>+</button>
       </div>
     </div>

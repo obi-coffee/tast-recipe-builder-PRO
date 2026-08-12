@@ -130,7 +130,8 @@ export function Param({ label, value }) {
   return (
     <div className="param-cell">
       <div className="eyebrow" style={{ marginBottom: '6px', fontSize: '10px' }}>{label}</div>
-      <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>{value}</div>
+      {/* Platform: parameter values read in the Arizona serif (mono label above) */}
+      <div style={{ fontFamily: 'var(--font-serif)', fontSize: '19px', fontWeight: 400, color: 'var(--text-primary)', lineHeight: 1.25 }}>{value}</div>
     </div>
   );
 }

@@ -23,55 +23,62 @@
 }
 
 :root {
-  /* tāst light palette — warm off-white surfaces, crisp white cards (from the app designs) */
-  --bg-primary: #F8F6F3;    /* warm off-white */
-  --bg-secondary: #F2EFEB;
-  --bg-tertiary: #EAE6E1;
-  --bg-hover: #ECE8E3;
-  --bg-active: #E4DFD9;
-  --bg-card: #FFFFFF;       /* crisp white card */
-  --bg-cream: #EDE7E1;      /* taupe feature-card surface */
+  /* tāst light palette — platform design-system tokens (Figma: Local Design
+     System → Colors, "Token/*" chips). Canvas is a cool paper white; cards are
+     raised cream; sunken surfaces are warm sand. */
+  --bg-primary: #F8F8F5;    /* Token/surface/canvas */
+  --bg-secondary: #F3F2EE;
+  --bg-tertiary: #EDE7E0;   /* Token/surface/sunken */
+  --bg-hover: #EFEEE9;
+  --bg-active: #E7E5DF;
+  --bg-card: #FDFCF8;       /* Token/surface/raised */
+  --bg-cream: #EDE7E0;      /* sunken feature-card surface */
 
-  /* Immersive raspberry surface (headers / brand moments) */
-  --accent-deep: #9E3756;   /* wine raspberry */
-  --accent-deep-2: #B24A68; /* raspberry gradient top */
+  /* Hero raspberry surface (headers / brand moments) */
+  --accent-deep: #A23053;   /* Token/surface/hero */
+  --accent-deep-2: #B02D5C; /* raised raspberry */
 
-  /* Text — Rich Black on warm grays */
-  --text-primary: #1A1A1A;
-  --text-secondary: #6B6660;
-  --text-tertiary: #9A958F;
-  --text-placeholder: #B8B2AB;
-  --text-on-accent: #FFFFFF;
+  /* Text — Rich Black with the platform's cool gray hierarchy */
+  --text-primary: #1A1A1A;  /* Token/text/primary */
+  --text-secondary: #4A4A4A;/* Token/text/secondary */
+  --text-tertiary: #A89E93; /* Token/text/tertiary (warm sand-gray) */
+  --text-placeholder: #C4C4C4; /* Token/text/muted */
+  --text-on-accent: #FFFFFF;/* Token/text/on-hero */
 
-  /* Borders */
-  --border-default: rgba(26, 26, 26, 0.07);
-  --border-strong: rgba(26, 26, 26, 0.14);
+  /* Borders — hairline sand on cards, mid-gray on rows/controls */
+  --border-default: #EDE7E0; /* card hairline (design cards stroke) */
+  --border-strong: #C4C4C4;  /* Token/border/default (dividers, outlines) */
   --border-focus: rgba(240, 88, 129, 0.55);
 
-  /* Pink accent (CTA) */
-  --accent: #F05881;        /* Pink */
-  --accent-hover: #DB4870;  /* slightly deeper pink on hover */
-  --accent-light: rgba(240, 88, 129, 0.10);
-  --accent-lighter: rgba(240, 88, 129, 0.06);
+  /* Pink accent (CTA) — Token/accent ramp */
+  --accent: #F05881;        /* Token/accent/default */
+  --accent-hover: #D94470;  /* Token/accent/hover */
+  --accent-pressed: #B8305A;/* Token/accent/pressed */
+  --accent-light: #FCEEF0;  /* Token/accent/subtle (solid blush) */
+  --accent-lighter: #FEF6F7;
   --accent-text: #FFFFFF;
 
-  /* Status */
-  --danger: #D95555;
-  --danger-light: rgba(217, 85, 85, 0.08);
-  --success: #4B9E55;
-  --success-light: rgba(75, 158, 85, 0.08);
-  --success-text: #2D7D3A;
+  /* Status — Token/feedback */
+  --danger: #C43E2A;
+  --danger-light: #F8E4E0;
+  --success: #2D8B4E;
+  --success-light: #E6F2EA;
+  --success-text: #2D8B4E;
+  --warning: #D4880F;
+  --warning-light: #FBEFD4;
+  --info: #3B7DD8;
+  --info-light: #E3EDFB;
 
   /* Shadows */
   --shadow-sm: 0 1px 3px rgba(44, 37, 32, 0.04);
   --shadow-md: 0 4px 12px rgba(44, 37, 32, 0.06);
   --shadow-lg: 0 8px 28px rgba(44, 37, 32, 0.1);
 
-  /* Radii — generous, matching the app cards */
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
+  /* Radii — platform values: tables 12, cards 20, buttons full pill */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
   --radius-pill: 9999px;
 
   /* Spacing scale */
@@ -89,6 +96,9 @@
      @font-face for Antartican Mono and keep it first in this list to enable it. */
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
   --font-serif: "ABC Arizona Text", Georgia, "Times New Roman", ui-serif, serif;
+  /* Platform body serif: descriptions and brew prose set in Times New Roman
+     (per the consumer-app high-fidelities); Arizona stays for numbers/headers. */
+  --font-body-serif: "Times New Roman", Times, ui-serif, serif;
   --font-mono: "Antartican Mono", ui-monospace, "SF Mono", "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
 
   /* Icon filters (near Rich Black, and a neutral gray) */
@@ -96,47 +106,55 @@
   --icon-filter-secondary: brightness(0) saturate(100%) invert(55%);
 }
 
-/* Dark mode */
+/* Dark mode — the platform's WINE theme. Dark is not black: the canvas is a
+   deep burgundy (Token dark column: canvas #7A1E3A, raised #B02D5C) with paper
+   ink and blush accents. Derived steps (hover/active/secondary/tertiary text)
+   interpolate within the wine ramp where the design system doesn't name one. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-primary: #1A1716;   /* warm Rich Black */
-    --bg-secondary: #221F1D;
-    --bg-tertiary: #2B2826;
-    --bg-hover: #34302D;
-    --bg-active: #3E3A36;
-    --bg-card: #242120;
-    --bg-cream: #2B2624;
+    --bg-primary: #7A1E3A;   /* Token/surface/canvas (dark) */
+    --bg-secondary: #71173C; /* derived: canvas −1 step */
+    --bg-tertiary: #6B1530;  /* Token/accent/subtle (dark) — sunken */
+    --bg-hover: #8A2545;     /* derived */
+    --bg-active: #973052;    /* derived */
+    --bg-card: #8F2448;      /* derived between canvas and raised, keeps text AA */
+    --bg-cream: #6B1530;
 
-    --accent-deep: #9E3756;
-    --accent-deep-2: #B24A68;
+    --accent-deep: #A23053;  /* Token/surface/hero */
+    --accent-deep-2: #B02D5C;
 
-    --text-primary: #F6F3EF;
-    --text-secondary: #ABA59E;
-    --text-tertiary: #726C66;
-    --text-placeholder: #565049;
+    --text-primary: #F8F8F5; /* Token/text/primary (dark) */
+    --text-secondary: #D4C9BE; /* Token/text/secondary (dark) */
+    --text-tertiary: #D89DB2;  /* derived blush-gray */
+    --text-placeholder: #B76F8B; /* derived */
     --text-on-accent: #FFFFFF;
 
-    --border-default: rgba(246, 243, 239, 0.08);
-    --border-strong: rgba(246, 243, 239, 0.14);
-    --border-focus: rgba(242, 135, 183, 0.5);
+    --border-default: #8F2A4C;  /* hairline within the wine ramp */
+    --border-strong: #C04070;   /* Token/border/default (dark) */
+    --border-focus: rgba(242, 135, 183, 0.55);
 
-    --accent: #F287B7;       /* softer Pink for dark surfaces */
-    --accent-hover: #F05881; /* Pink */
-    --accent-light: rgba(242, 135, 183, 0.12);
-    --accent-lighter: rgba(242, 135, 183, 0.06);
+    --accent: #F287B7;       /* softer Pink for wine surfaces */
+    --accent-hover: #F05881;
+    --accent-pressed: #F8C5CE;
+    --accent-light: #6B1530; /* Token/accent/subtle (dark) */
+    --accent-lighter: #5C1527;
 
-    --danger: #E06060;
-    --danger-light: rgba(224, 96, 96, 0.12);
-    --success: #5CB368;
-    --success-light: rgba(92, 179, 104, 0.12);
-    --success-text: #7DD48B;
+    --danger: #E87866;
+    --danger-light: rgba(232, 120, 102, 0.16);
+    --success: #5FBF7E;
+    --success-light: rgba(95, 191, 126, 0.16);
+    --success-text: #5FBF7E;
+    --warning: #F2B84B;
+    --warning-light: rgba(242, 184, 75, 0.16);
+    --info: #7AABEE;
+    --info-light: rgba(122, 171, 238, 0.16);
 
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
-    --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.35);
+    --shadow-sm: 0 1px 3px rgba(39, 6, 18, 0.3);
+    --shadow-md: 0 4px 12px rgba(39, 6, 18, 0.35);
+    --shadow-lg: 0 8px 28px rgba(39, 6, 18, 0.45);
 
     --icon-filter: brightness(0) saturate(100%) invert(96%);
-    --icon-filter-secondary: brightness(0) saturate(100%) invert(60%);
+    --icon-filter-secondary: brightness(0) saturate(100%) invert(80%) sepia(8%);
   }
 }
 
@@ -220,7 +238,7 @@ html {
 .notion-card {
   background: var(--bg-card);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl); /* platform cards: r=20, sand hairline */
   box-shadow: var(--shadow-sm);
 }
 
@@ -271,7 +289,7 @@ html {
 
 .notion-button-secondary {
   background: var(--bg-card);
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--border-strong); /* platform: #C4C4C4 outline pill */
   color: var(--text-secondary);
   border-radius: var(--radius-pill);
   font-weight: 500;
@@ -412,13 +430,16 @@ html {
 /* --- Flavor Pill Tags --- */
 
 .flavor-pill {
-  padding: 6px 14px;
+  /* Platform FlavorTag: solid blush chip, deep-pink caps, no outline */
+  padding: 6px 12px;
   background: var(--accent-light);
-  border: 1px solid rgba(240, 88, 129, 0.12);
+  border: none;
   border-radius: var(--radius-pill);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  color: var(--accent);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent-pressed);
 }
 
 /* --- Brew Step Card --- */
@@ -426,10 +447,18 @@ html {
 .brew-step-card {
   background: var(--bg-card);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  padding: 16px 18px;
+  border-radius: var(--radius-xl); /* platform brew-step cards: r=20, pad 24 */
+  padding: 20px 24px;
   box-shadow: var(--shadow-sm);
   transition: box-shadow 0.15s ease;
+}
+
+/* Platform body prose — brew descriptions and step instructions read in the
+   brand's Times body serif; UI chrome stays in the sans. */
+.body-prose {
+  font-family: var(--font-body-serif);
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 /* --- Parameter Grid Cell --- */
