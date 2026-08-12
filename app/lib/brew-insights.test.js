@@ -73,6 +73,68 @@ describe('brew insights — the coffee-aware assist', () => {
     expect(stdPaper.pour.join(' ')).not.toMatch(/timestamp/i);
   });
 
+  it('affirms agitation for washed coffees on pour over', () => {
+    const out = buildBrewInsights({
+      coffeeData: { name: 'Kenya AA', process: 'Washed', roastLevel: 'Light' },
+      brewData: { device: 'V60 02' }, recipe: {}, now: NOW,
+    });
+    expect(out.pour.join(' ')).toMatch(/faster, tighter spirals/i);
+    expect(out.wait.join(' ')).toMatch(/confident swirl/i);
+  });
+
+  it('tempers washed agitation on a dark roast', () => {
+    const out = buildBrewInsights({
+      coffeeData: { name: 'Dark Lot', process: 'Washed', roastLevel: 'Dark' },
+      brewData: { device: 'V60 02' }, recipe: {}, now: NOW,
+    });
+    expect(out.pour.join(' ')).toMatch(/brisk and brief/i);
+    expect(out.pour.join(' ')).not.toMatch(/faster, tighter spirals/i);
+  });
+
+  it('keeps naturals and ferments gentle on pour over', () => {
+    const nat = buildBrewInsights({
+      coffeeData: { process: 'Natural', roastLevel: 'Medium' },
+      brewData: { device: 'V60 02' }, recipe: {}, now: NOW,
+    });
+    expect(nat.pour.join(' ')).toMatch(/low and slow/i);
+    const ana = buildBrewInsights({
+      coffeeData: { process: 'Anaerobic Natural' },
+      brewData: { device: 'Orea V4' }, recipe: {}, now: NOW,
+    });
+    expect(ana.pour.join(' ')).toMatch(/minimal agitation/i);
+  });
+
+  it('a delicate variety overrides even a washed process toward gentleness', () => {
+    const out = buildBrewInsights({
+      coffeeData: { variety: 'Gesha', process: 'Washed', roastLevel: 'Light' },
+      brewData: { device: 'V60 02' }, recipe: {}, now: NOW,
+    });
+    const all = [...out.pour, ...out.wait].join(' ');
+    expect(all).toMatch(/overrides the playbook/i);
+    expect(all).not.toMatch(/faster, tighter spirals/i);
+  });
+
+  it('speaks the immersion verb: stirs, not spirals', () => {
+    const fp = buildBrewInsights({
+      coffeeData: { process: 'Washed' },
+      brewData: { device: 'French Press' }, recipe: {}, now: NOW,
+    });
+    expect(fp.wait.join(' ')).toMatch(/crust.*stir with intent/i);
+    const ap = buildBrewInsights({
+      coffeeData: { process: 'Natural' },
+      brewData: { device: 'AeroPress' }, recipe: {}, now: NOW,
+    });
+    expect(ap.pour.join(' ')).toMatch(/stirs to the minimum/i);
+  });
+
+  it('stays silent for styles with no brew-along', () => {
+    const out = buildBrewInsights({
+      coffeeData: { process: 'Washed', roastLevel: 'Light' },
+      brewData: { device: 'Moka Pot' }, recipe: {}, now: NOW,
+    });
+    expect(out.pour.join(' ')).not.toMatch(/spiral|stir/i);
+  });
+
   it('returns empty buckets for a sparse coffee — the generic voice takes over', () => {
     const out = buildBrewInsights({ coffeeData: {}, brewData: {}, recipe: {}, now: NOW });
     expect(out.bloom).toEqual([]);

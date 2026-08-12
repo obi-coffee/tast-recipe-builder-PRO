@@ -51,6 +51,16 @@ export default function Home() {
   const userRef = useRef(null);
   useEffect(() => { userRef.current = user; }, [user]);
   const [settings, setSettings] = useState(SETTINGS_DEFAULTS);
+
+  // Appearance: 'system' follows the OS; 'light'/'dark' stamp <html data-theme>
+  // which the CSS token scopes honor over the media query.
+  useEffect(() => {
+    const t = settings.theme;
+    try {
+      if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      else delete document.documentElement.dataset.theme;
+    } catch {}
+  }, [settings.theme]);
   const [brewLog, setBrewLog] = useState([]);
   const [savingLog, setSavingLog] = useState(false);
   const cloudConfigured = isCloudConfigured();

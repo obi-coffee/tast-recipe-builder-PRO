@@ -109,9 +109,14 @@
 /* Dark mode — the platform's WINE theme. Dark is not black: the canvas is a
    deep burgundy (Token dark column: canvas #7A1E3A, raised #B02D5C) with paper
    ink and blush accents. Derived steps (hover/active/secondary/tertiary text)
-   interpolate within the wine ramp where the design system doesn't name one. */
+   interpolate within the wine ramp where the design system doesn't name one.
+
+   THEME TOGGLE: the same token set is declared twice — once under the OS
+   preference (guarded so an explicit light choice wins) and once under the
+   user's explicit data-theme="dark". Keep both copies in sync. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --bg-primary: #7A1E3A;   /* Token/surface/canvas (dark) */
     --bg-secondary: #71173C; /* derived: canvas −1 step */
     --bg-tertiary: #6B1530;  /* Token/accent/subtle (dark) — sunken */
@@ -156,6 +161,53 @@
     --icon-filter: brightness(0) saturate(100%) invert(96%);
     --icon-filter-secondary: brightness(0) saturate(100%) invert(80%) sepia(8%);
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-primary: #7A1E3A;   /* Token/surface/canvas (dark) */
+  --bg-secondary: #71173C; /* derived: canvas −1 step */
+  --bg-tertiary: #6B1530;  /* Token/accent/subtle (dark) — sunken */
+  --bg-hover: #8A2545;     /* derived */
+  --bg-active: #973052;    /* derived */
+  --bg-card: #8F2448;      /* derived between canvas and raised, keeps text AA */
+  --bg-cream: #6B1530;
+
+  --accent-deep: #A23053;  /* Token/surface/hero */
+  --accent-deep-2: #B02D5C;
+
+  --text-primary: #F8F8F5; /* Token/text/primary (dark) */
+  --text-secondary: #D4C9BE; /* Token/text/secondary (dark) */
+  --text-tertiary: #D89DB2;  /* derived blush-gray */
+  --text-placeholder: #B76F8B; /* derived */
+  --text-on-accent: #FFFFFF;
+
+  --border-default: #8F2A4C;  /* hairline within the wine ramp */
+  --border-strong: #C04070;   /* Token/border/default (dark) */
+  --border-focus: rgba(242, 135, 183, 0.55);
+
+  --accent: #F287B7;       /* softer Pink for wine surfaces */
+  --accent-hover: #F05881;
+  --accent-pressed: #F8C5CE;
+  --accent-light: #6B1530; /* Token/accent/subtle (dark) */
+  --accent-lighter: #5C1527;
+
+  --danger: #E87866;
+  --danger-light: rgba(232, 120, 102, 0.16);
+  --success: #5FBF7E;
+  --success-light: rgba(95, 191, 126, 0.16);
+  --success-text: #5FBF7E;
+  --warning: #F2B84B;
+  --warning-light: rgba(242, 184, 75, 0.16);
+  --info: #7AABEE;
+  --info-light: rgba(122, 171, 238, 0.16);
+
+  --shadow-sm: 0 1px 3px rgba(39, 6, 18, 0.3);
+  --shadow-md: 0 4px 12px rgba(39, 6, 18, 0.35);
+  --shadow-lg: 0 8px 28px rgba(39, 6, 18, 0.45);
+
+  --icon-filter: brightness(0) saturate(100%) invert(96%);
+  --icon-filter-secondary: brightness(0) saturate(100%) invert(80%) sepia(8%);
 }
 
 /* --- Base Reset --- */
@@ -408,9 +460,11 @@ html {
 .brand-logo-light { display: block; }
 .brand-logo-dark { display: none; }
 @media (prefers-color-scheme: dark) {
-  .brand-logo-light { display: none; }
-  .brand-logo-dark { display: block; }
+  :root:not([data-theme="light"]) .brand-logo-light { display: none; }
+  :root:not([data-theme="light"]) .brand-logo-dark { display: block; }
 }
+:root[data-theme="dark"] .brand-logo-light { display: none; }
+:root[data-theme="dark"] .brand-logo-dark { display: block; }
 
 /* --- PRO wordmark (header row 1, right) --- */
 

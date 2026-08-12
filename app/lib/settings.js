@@ -16,6 +16,7 @@ export const SETTINGS_DEFAULTS = {
   brewMethod: 'balanced',
   useFahrenheit: true, // temperature display unit (true = °F, false = °C)
   water: 'unknown',    // water hardness profile: 'soft' | 'balanced' | 'hard' | 'unknown'
+  theme: 'system',     // appearance: 'system' | 'light' | 'dark' (wine)
 };
 
 export function loadSettings() {

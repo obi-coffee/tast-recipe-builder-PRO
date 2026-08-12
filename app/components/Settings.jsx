@@ -38,6 +38,29 @@ export default function Settings({ settings, onSave, onClose }) {
           />
         </div>
 
+        {/* Appearance — system / light / wine dark */}
+        <div>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px', letterSpacing: '0.01em' }}>
+            Appearance
+          </label>
+          <div style={{ display: 'flex', gap: '8px' }} role="group" aria-label="Appearance">
+            {[['System', 'system'], ['Light', 'light'], ['Dark', 'dark']].map(([label, key]) => (
+              <button
+                key={key}
+                onClick={() => set({ theme: key })}
+                aria-pressed={(form.theme || 'system') === key}
+                className={`dial-in-btn${(form.theme || 'system') === key ? ' active' : ''}`}
+                style={{ flex: 1, padding: '12px', fontSize: '14px' }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', margin: '8px 0 0' }}>
+            Dark is tāst wine, not black. System follows your device.
+          </p>
+        </div>
+
         {/* Temperature unit */}
         <div>
           <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px', letterSpacing: '0.01em' }}>

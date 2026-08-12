@@ -347,6 +347,17 @@ export default function ImmersiveBrew({ steps = [], totalTime, transform = (x) =
   // with identical layout so the clipped copy lines up pixel-for-pixel.
   const Screen = (c) => (
     <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', padding: 'max(18px, env(safe-area-inset-top)) 22px calc(20px + env(safe-area-inset-bottom))' }}>
+      {/* Brand row — light logo on the dark base, dark logo on the pink fill */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <img
+          src={c === LIGHT ? '/brand/logo-flat-ivory.svg' : '/brand/logo-flat-black.svg'}
+          alt="tāst"
+          style={{ height: 16, width: 'auto' }}
+        />
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: c.eyebrow }}>
+          Pour Pal PRO
+        </span>
+      </div>
       {/* Progress — each segment fills left-to-right at the same pace as the water */}
       <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
         {phases.map((_, i) => {
