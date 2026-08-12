@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { BREW_METHODS } from './data/brewing-options';
 import StepCoffee from './components/StepCoffee';
 import StepSetup from './components/StepSetup';
@@ -48,6 +48,8 @@ export default function Home() {
   const [savingCupping, setSavingCupping] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState(null);
+  const userRef = useRef(null);
+  useEffect(() => { userRef.current = user; }, [user]);
   const [settings, setSettings] = useState(SETTINGS_DEFAULTS);
   const [brewLog, setBrewLog] = useState([]);
   const [savingLog, setSavingLog] = useState(false);
@@ -57,6 +59,10 @@ export default function Home() {
   // in, otherwise localStorage) and pre-fill the wizard from saved gear.
   const loadAll = useCallback(async (u) => {
     try {
+      // A restored mobile session often carries an EXPIRED access token; RLS
+      // then silently returns zero rows ("signed in but my journal is empty").
+      // getSession() refreshes an expired token before we query.
+      if (u) { try { await getSupabase()?.auth.getSession(); } catch {} }
       const [recipes, s, log] = await Promise.all([getSavedRecipes(u), getSettings(u), getBrewLog(u)]);
       setSavedRecipes(recipes);
       setSettings(s);
@@ -103,14 +109,42 @@ export default function Home() {
       if (u) await migrateLocalToCloud(u).catch(e => console.error('migrate', e));
       await loadAll(u);
     }).catch(e => { console.error('session restore failed', e); loadAll(null); });
-    const { data: listener } = sb.auth.onAuthStateChange(async (_event, session) => {
+    const { data: listener } = sb.auth.onAuthStateChange((_event, session) => {
+      // Supabase holds an internal auth lock while this callback runs —
+      // awaited supabase calls in here can DEADLOCK token refresh (the root
+      // of the old "signed in but journal empty until re-login" bug).
+      // Defer all real work out of the callback.
       const u = session?.user || null;
       setUser(u);
-      if (u) await migrateLocalToCloud(u).catch(e => console.error('migrate', e));
-      await loadAll(u);
+      setTimeout(async () => {
+        if (u) await migrateLocalToCloud(u).catch(e => console.error('migrate', e));
+        await loadAll(u);
+      }, 0);
     });
     subscription = listener?.subscription;
     return () => subscription?.unsubscribe?.();
+  }, [loadAll]);
+
+  // Mobile browsers freeze/kill background tabs; when the app returns to the
+  // foreground, re-sync so the journal reflects reality (and a token refreshed
+  // while backgrounded gets used). Throttled to avoid hammering on tab flips.
+  useEffect(() => {
+    let last = 0;
+    const revive = () => {
+      if (document.visibilityState !== 'visible') return;
+      const now = Date.now();
+      if (now - last < 5000) return;
+      last = now;
+      loadAll(userRef.current);
+    };
+    document.addEventListener('visibilitychange', revive);
+    window.addEventListener('pageshow', revive);
+    window.addEventListener('focus', revive);
+    return () => {
+      document.removeEventListener('visibilitychange', revive);
+      window.removeEventListener('pageshow', revive);
+      window.removeEventListener('focus', revive);
+    };
   }, [loadAll]);
 
   const handleSaveSettings = async (form) => {
