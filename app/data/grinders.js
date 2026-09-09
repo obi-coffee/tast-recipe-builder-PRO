@@ -18,6 +18,22 @@ const GRINDERS = {
       coldBrew: '7 + 1 click – 11',
     },
   },
+  // PROVISIONAL (Sep 9, 2026): SSP Red Speed burrs grind noticeably finer than
+  // stock Gen 2 burrs at the same dial number, so the bands below are shifted
+  // ~2 numbers coarser. Obi to confirm against real brews; SSP burrs also
+  // need ~5–10 lb of coffee to season, so revisit after break-in.
+  'Fellows Ode Gen 2 (SSP Red Speed)': {
+    range: '1–11',
+    type: 'stepped',
+    settings: 31,
+    unit: 'number + clicks',
+    description: 'Fellow Ode Gen 2 fitted with SSP Red Speed coated 64mm burrs. Same dial as stock: 31 stepped settings from 1 (finest) to 11 (coarsest), 11 numbered positions with 2 intermediate clicks between each number. SSP burrs grind FINER than stock Gen 2 burrs at the same number, so typical settings sit roughly 2 numbers coarser. IMPORTANT: Express settings using "number + clicks" notation. Valid positions are: a whole number alone (e.g., "5"), a number plus 1 click (e.g., "5 + 1 click"), or a number plus 2 clicks (e.g., "5 + 2 clicks"). NEVER use decimals. NEVER say "+3 clicks" — the maximum is +2 clicks before the next number. Filter-only grinder, not suitable for espresso.',
+    brewRanges: {
+      pourOver: '4 + 1 click – 7',
+      immersion: '6 + 1 click – 9',
+      coldBrew: '8 + 1 click – 11',
+    },
+  },
   'Fellows Ode Gen 1': {
     range: '1–11',
     type: 'stepped',

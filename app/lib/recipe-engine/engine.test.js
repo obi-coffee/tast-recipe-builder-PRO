@@ -103,6 +103,12 @@ describe('recipe engine — grind native units', () => {
     const g = computeGrind({ grinderName: 'Fellows Ode Gen 2', grindKey: 'pourOver', t: 0.5 });
     expect(g.start).toMatch(/^\d+( \+ \d click[s]?)?$/);
   });
+  it('Ode Gen 2 with SSP Red Speed burrs lands coarser than stock at the same position', () => {
+    const stock = computeGrind({ grinderName: 'Fellows Ode Gen 2', grindKey: 'pourOver', t: 0.5 });
+    const ssp = computeGrind({ grinderName: 'Fellows Ode Gen 2 (SSP Red Speed)', grindKey: 'pourOver', t: 0.5 });
+    expect(ssp.start).toMatch(/^\d+( \+ \d click[s]?)?$/);
+    expect(parseInt(ssp.start, 10)).toBeGreaterThan(parseInt(stock.start, 10));
+  });
   it('keeps Baratza Vario within its real macro range (no 11A overflow)', () => {
     const g = computeGrind({ grinderName: 'Baratza Vario+', grindKey: 'coldBrew', t: 1 });
     expect(g.start).toMatch(/^(?:[1-9]|10)[A-Q]$/); // macro 1–10 only
