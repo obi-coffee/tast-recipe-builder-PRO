@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ROAST_LEVELS, PROCESSES, FLAVOR_TAGS, CUPPING_ATTRIBUTES } from '../data/brewing-options';
+import { ROAST_LEVELS, PROCESS_GROUPS, FLAVOR_TAGS, CUPPING_ATTRIBUTES } from '../data/brewing-options';
 
 /**
  * Cupping Mode — a separate, deliberate ritual apart from everyday brewing.
@@ -187,7 +187,11 @@ export default function CuppingSession({ onComplete, onExit, saving = false }) {
                   <select style={{ ...input, color: c.process ? INK : FAINT }} value={c.process} aria-label={`Bowl ${i + 1} process`}
                     onChange={e => setCoffees(prev => prev.map((x, j) => j === i ? { ...x, process: e.target.value } : x))}>
                     <option value="">Process…</option>
-                    {PROCESSES.map(p => <option key={p} value={p}>{p}</option>)}
+                    {PROCESS_GROUPS.map(g => (
+                      <optgroup key={g.label} label={g.label}>
+                        {g.options.map(p => <option key={p} value={p}>{p}</option>)}
+                      </optgroup>
+                    ))}
                   </select>
                 </div>
               </div>

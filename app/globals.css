@@ -888,3 +888,12 @@ html {
   margin-top: 2px;
 }
 .method-option.active { color: var(--accent); }
+.method-option.auto { border-bottom-width: 2px; }
+.method-trigger .method-chosen { font-weight: 400; color: var(--text-secondary); }
+/* One-line explanation under the picker: why Best for the bean chose what it chose. */
+.method-why {
+  margin: 8px 2px 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}

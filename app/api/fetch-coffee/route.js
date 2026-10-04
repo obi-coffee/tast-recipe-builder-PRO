@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { parseClaudeResponse } from '../../lib/api-helpers';
 import { AI_MODEL } from '../../lib/ai-config';
-import { PROCESSES, ROAST_LEVELS } from '../../data/brewing-options';
+import { ROAST_LEVELS, normalizeProcess } from '../../data/brewing-options';
 import { safeFetch } from '../../lib/safe-fetch';
 import { rateLimit, clientIp } from '../../lib/rate-limit';
 
@@ -408,7 +408,7 @@ export async function POST(request) {
       origin: String(parsed.origin || ''),
       region: String(parsed.region || ''),
       variety: String(parsed.variety || ''),
-      process: normalizeToOption(String(parsed.process || ''), PROCESSES),
+      process: normalizeProcess(String(parsed.process || '')),
       roastLevel: normalizeToOption(String(parsed.roastLevel || ''), ROAST_LEVELS),
       elevation: String(parsed.elevation || ''),
       producer: String(parsed.producer || ''),
