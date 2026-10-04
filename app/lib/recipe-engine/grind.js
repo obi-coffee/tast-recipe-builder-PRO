@@ -90,6 +90,11 @@ function formatValue(num, grinder) {
     if (click >= 3) { base += 1; click = 0; }
     return click === 0 ? `${base}` : `${base} + ${click} click${click > 1 ? 's' : ''}`;
   }
+  // Fellow Opus: dial number in quarter steps (3, 3.25, 3.5, 3.75)
+  if (unit.includes('quarter steps')) {
+    const q = Math.round(num * 4) / 4;
+    return `${q}`;
+  }
   // OXO whole number (+ optional micro — we keep it to the whole number)
   // Default stepped / whole-number grinders
   return `${Math.round(num)}`;
@@ -122,6 +127,9 @@ export function grindStepHint({ grinderName, grindKey }) {
       amount = 'a couple of micro-steps';
     } else if (unit.includes('number + clicks')) {
       amount = '~2–3 clicks';
+    } else if (unit.includes('quarter steps')) {
+      const steps = Math.max(1, Math.round(delta * 4));
+      amount = `~${steps} quarter ${steps === 1 ? 'step' : 'steps'}`;
     } else if (type === 'stepless') {
       const d = Math.max(0.1, Math.round(delta * 10) / 10);
       let noun = 'on the dial';

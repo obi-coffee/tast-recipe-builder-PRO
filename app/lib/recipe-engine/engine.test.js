@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildRecipe } from './index';
-import { computeGrind } from './grind';
+import { computeGrind, grindStepHint } from './grind';
+import { GRINDERS } from '../../data/grinders';
 
 const coffee = (over = {}) => ({
   name: 'Test Coffee', origin: 'Ethiopia', region: 'Yirgacheffe',
@@ -125,13 +126,88 @@ describe('recipe engine — grind native units', () => {
   });
 
   it('supports the new home grinders with in-range, one-decimal settings', () => {
-    const names = ['Mahlkönig X54', 'Mahlkönig X64 SD', 'Mahlkönig E64 WS', 'Weber EG-1', 'Weber Key', 'Weber HG-2'];
+    const names = ['Mahlkönig X54', 'Mahlkönig X64 SD', 'Weber EG-1', 'Weber Key', 'Weber HG-2'];
     for (const grinderName of names) {
       for (const grindKey of ['espresso', 'pourOver', 'immersion', 'coldBrew']) {
         const g = computeGrind({ grinderName, grindKey, t: 0.5 });
         expect(g.start, `${grinderName}/${grindKey}`).toMatch(/^\d+(\.\d)?$/); // numeric, ≤1 decimal
         expect(g.fellBack, `${grinderName}/${grindKey}`).toBe(false);          // each has a dedicated range
       }
+    }
+  });
+});
+
+// Oct 2026 grinder audit — dial notation and ranges checked against
+// manufacturer manuals and official charts.
+describe('recipe engine — grinder audit (manufacturer data)', () => {
+  const at = (grinderName, grindKey, t = 0.5) => computeGrind({ grinderName, grindKey, t });
+
+  it('every grinder declares where its ranges come from', () => {
+    for (const [name, g] of Object.entries(GRINDERS)) {
+      if (name === 'Generic') continue;
+      expect(g.rangeSource, name).toMatch(/manufacturer|tāst|estimate|provisional/);
+    }
+  });
+
+  it('Ode Gen 1 uses the 31-step number + clicks dial like Gen 2', () => {
+    const g = at('Fellows Ode Gen 1', 'pourOver', 0.6);
+    expect(g.start).toMatch(/^\d+( \+ \d click[s]?)?$/);
+    expect(GRINDERS['Fellows Ode Gen 1'].settings).toBe(31);
+  });
+
+  it('Opus speaks the printed 1–11 dial in quarter steps', () => {
+    for (const grindKey of ['espresso', 'pourOver', 'immersion', 'coldBrew']) {
+      for (const t of [0, 0.3, 0.5, 0.8, 1]) {
+        const g = at('Fellows Opus', grindKey, t);
+        const v = parseFloat(g.start);
+        expect(g.start, `${grindKey}@${t}`).toMatch(/^\d+(\.(25|5|75))?$/);
+        expect(v).toBeGreaterThanOrEqual(1);
+        expect(v).toBeLessThanOrEqual(11);
+      }
+    }
+    expect(grindStepHint({ grinderName: 'Fellows Opus', grindKey: 'pourOver' }).amount).toMatch(/quarter step/);
+  });
+
+  it('1Zpresso JX-Pro pour-over follows the official chart (not espresso territory)', () => {
+    const n = firstInt(at('1Zpresso JX-Pro', 'pourOver').start);
+    expect(n).toBeGreaterThanOrEqual(120);
+    expect(n).toBeLessThanOrEqual(176);
+  });
+
+  it('1Zpresso K-Max pour-over sits above its espresso band and the range passes one turn', () => {
+    const pour = firstInt(at('1Zpresso K-Max', 'pourOver').start);
+    const esp = firstInt(at('1Zpresso K-Max', 'espresso', 1).start);
+    expect(pour).toBeGreaterThan(esp);
+    expect(pour).toBeGreaterThanOrEqual(70);
+    expect(firstInt(at('1Zpresso K-Max', 'coldBrew', 1).start)).toBeGreaterThan(90);
+  });
+
+  it('Niche Zero V60 lands in Niche\'s 35–45 guide at a medium roast', () => {
+    const n = firstInt(at('Niche Zero', 'pourOver').start);
+    expect(n).toBeGreaterThanOrEqual(35);
+    expect(n).toBeLessThanOrEqual(45);
+  });
+
+  it('Chestnut X uses the manual\'s click scale (pour over 13–16)', () => {
+    const n = firstInt(at('Timemore Chestnut X', 'pourOver').start);
+    expect(n).toBeGreaterThanOrEqual(13);
+    expect(n).toBeLessThanOrEqual(16);
+  });
+
+  it('Vario+ never recommends finer than 2Q, where the burrs touch', () => {
+    const g = at('Baratza Vario+', 'espresso', 0);
+    expect(g.start).toBe('2Q');
+  });
+
+  it('Mahlkönig X54 filter sits in the manual\'s 15–25 band', () => {
+    const v = parseFloat(at('Mahlkönig X54', 'pourOver').start);
+    expect(v).toBeGreaterThanOrEqual(15);
+    expect(v).toBeLessThanOrEqual(25);
+  });
+
+  it('Mahlkönig E64 WS (no numbered dial) speaks in descriptive terms', () => {
+    for (const grindKey of ['espresso', 'pourOver', 'immersion', 'coldBrew']) {
+      expect(at('Mahlkönig E64 WS', grindKey).start).toMatch(/^(Extra )?(Fine|Medium|Coarse)|Medium-(Fine|Coarse)$/);
     }
   });
 });
