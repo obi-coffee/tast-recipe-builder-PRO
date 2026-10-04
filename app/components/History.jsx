@@ -84,11 +84,19 @@ export default function History({ entries, onOpen, onDelete }) {
                   disabled={!canOpen}
                   aria-label={canOpen ? `Reopen ${name}` : undefined}
                   style={{
-                    display: 'block', width: '100%', textAlign: 'left', background: 'none',
+                    display: 'flex', gap: '12px', alignItems: 'flex-start', width: '100%', textAlign: 'left', background: 'none',
                     border: 'none', padding: '12px', paddingRight: '52px', borderRadius: 'var(--radius-md)',
                     cursor: canOpen ? 'pointer' : 'default', color: 'inherit',
                   }}
                 >
+                  <img
+                    src={c.imageUrl || '/icons/coffee-placeholder.svg'}
+                    alt=""
+                    loading="lazy"
+                    onError={ev => { ev.currentTarget.onerror = null; ev.currentTarget.src = '/icons/coffee-placeholder.svg'; }}
+                    className="recipe-thumbnail journal-thumbnail"
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px' }}>
                     <div style={{ fontWeight: 500, fontSize: '14px', color: 'var(--text-primary)' }}>{name}</div>
                     <span style={{ fontSize: '12px', color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>{timeAgo(e.createdAt)}</span>
@@ -112,6 +120,7 @@ export default function History({ entries, onOpen, onDelete }) {
                   {e.notes && (
                     <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: 1.5 }}>{e.notes}</div>
                   )}
+                  </div>
                 </button>
 
                 {onDelete && (

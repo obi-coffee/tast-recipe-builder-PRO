@@ -1,5 +1,6 @@
 import { ROAST_LEVELS, PROCESS_GROUPS } from '../data/brewing-options';
 import { Row, Field, Select } from './ui';
+import PhotoPicker from './PhotoPicker';
 
 /**
  * Step 1 — Coffee details. URL import or manual entry.
@@ -8,6 +9,7 @@ export default function StepCoffee({
   coffeeData, setCoffeeData,
   coffeeUrl, setCoffeeUrl,
   fetchCoffeeDetails, fetchingCoffee,
+  imageOptions = [], onPhotoChange,
   canProceed, onContinue,
 }) {
   return (
@@ -72,6 +74,9 @@ export default function StepCoffee({
 
       {/* Form */}
       <div style={{ display: 'grid', gap: '16px' }}>
+        {onPhotoChange && (
+          <PhotoPicker imageUrl={coffeeData.imageUrl || ''} options={imageOptions} onChange={onPhotoChange} />
+        )}
         <Row>
           <Field label="Name" value={coffeeData.name} onChange={v => setCoffeeData({...coffeeData, name: v})} placeholder="Coffee name" />
           <Field label="Roaster" value={coffeeData.roaster} onChange={v => setCoffeeData({...coffeeData, roaster: v})} placeholder="Roaster / brand" />

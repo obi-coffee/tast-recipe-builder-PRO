@@ -897,3 +897,9 @@ html {
   line-height: 1.55;
   color: var(--text-secondary);
 }
+
+/* Journal rows: slightly larger coffee photo for easy browsing */
+.journal-thumbnail {
+  width: 56px;
+  height: 56px;
+}

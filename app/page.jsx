@@ -30,6 +30,9 @@ export default function Home() {
   const [recipe, setRecipe] = useState(null);
   const [coffeeUrl, setCoffeeUrl] = useState('');
   const [fetchingCoffee, setFetchingCoffee] = useState(false);
+  // Photos found on the roaster's product page — the user picks which one shows.
+  const [imageOptions, setImageOptions] = useState([]);
+  const setCoffeePhoto = useCallback((url) => setCoffeeData(prev => ({ ...prev, imageUrl: url })), []);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState(''); // soft, non-blocking notices (not failures)
   const [useFahrenheit, setUseFahrenheit] = useState(true);
@@ -294,6 +297,7 @@ export default function Home() {
           ...prev,
           ...Object.fromEntries(Object.entries(data).filter(([k, v]) => k !== '_warning' && v && typeof v === 'string' && v.trim()))
         }));
+        setImageOptions(Array.isArray(data.imageOptions) ? data.imageOptions.filter(u => typeof u === 'string') : []);
         // Show warning as a neutral, non-blocking notice (not a red error).
         if (data._warning) {
           setNotice(data._warning);
@@ -416,6 +420,7 @@ export default function Home() {
   const loadRecipe = (saved) => {
     setRecipe(saved.recipe);
     setCoffeeData(saved.coffeeData);
+    setImageOptions([]);
     setBrewData(saved.brewData);
     setStep(4);
     setShowSaved(false);
@@ -440,6 +445,7 @@ export default function Home() {
     setRecipe(entry.recipe);
     if (entry.coffeeData) setCoffeeData(entry.coffeeData);
     if (entry.brewData) setBrewData(entry.brewData);
+    setImageOptions([]);
     setStep(4);
     setShowHistory(false);
     setDialInMode(false);
@@ -535,6 +541,7 @@ export default function Home() {
     setCoffeeData({ name: '', roaster: '', origin: '', region: '', variety: '', process: '', roastLevel: '', elevation: '', producer: '', notes: '', roastedOn: '', imageUrl: '' });
     setBrewData({ grinder: settings.grinder || '', method: settings.method || '', device: settings.device || '', targetWeight: settings.targetWeight || 300, brewMethod: settings.brewMethod || 'balanced', filter: 'standard', booster: 'none' });
     setCoffeeUrl('');
+    setImageOptions([]);
     setError('');
     setDialInMode(false);
     setDialInResult(null);
@@ -789,6 +796,8 @@ export default function Home() {
             setCoffeeUrl={setCoffeeUrl}
             fetchCoffeeDetails={fetchCoffeeDetails}
             fetchingCoffee={fetchingCoffee}
+            imageOptions={imageOptions}
+            onPhotoChange={setCoffeePhoto}
             canProceed={canProceed1}
             onContinue={() => setStep(2)}
           />
@@ -822,6 +831,8 @@ export default function Home() {
             recipe={recipe}
             coffeeData={coffeeData}
             brewData={brewData}
+            imageOptions={imageOptions}
+            onPhotoChange={setCoffeePhoto}
             formatTemp={formatTemp}
             savedRecipes={savedRecipes}
             recipeSaved={recipeSaved}

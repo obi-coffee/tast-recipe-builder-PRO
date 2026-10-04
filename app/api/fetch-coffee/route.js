@@ -4,6 +4,7 @@ import { AI_MODEL } from '../../lib/ai-config';
 import { ROAST_LEVELS, normalizeProcess } from '../../data/brewing-options';
 import { safeFetch } from '../../lib/safe-fetch';
 import { rateLimit, clientIp } from '../../lib/rate-limit';
+import { extractImageCandidates, addImageCandidates } from '../../lib/coffee-images';
 
 export const runtime = 'nodejs'; // safe-fetch uses node:dns / node:net
 export const maxDuration = 60;
@@ -175,10 +176,12 @@ async function fetchPageContent(url) {
       bodyText.slice(0, bodyBudget)
     ].filter(Boolean).join('\n\n');
 
-    // Extract image directly from HTML (no AI needed)
+    // Extract images directly from HTML (no AI needed): the best one becomes
+    // the default, and every plausible product photo is offered as a choice.
     const imageUrl = extractImageUrl(html, url);
+    const imageOptions = addImageCandidates(imageUrl ? [imageUrl] : [], extractImageCandidates(html, url), url);
 
-    return { text: combined, imageUrl };
+    return { text: combined, imageUrl, imageOptions };
   }
 }
 
@@ -235,10 +238,13 @@ async function tryShopifyProductJson(pageUrl) {
       (p.image && p.image.src) ||
       (Array.isArray(p.images) && p.images[0] && p.images[0].src) ||
       '';
+    // The full product gallery, so the user can choose which photo to show.
+    const gallery = (Array.isArray(p.images) ? p.images : []).map(i => i && i.src).filter(Boolean);
 
     return {
       text: 'SHOPIFY PRODUCT DATA:\n' + parts.join('\n'),
       imageUrl: resolveUrl(rawImg, pageUrl),
+      imageOptions: addImageCandidates([], [rawImg, ...gallery], pageUrl),
     };
   } catch {
     return null;
@@ -302,10 +308,18 @@ export async function POST(request) {
     // Step 1: Fetch and extract page content
     let pageText;
     let extractedImageUrl = '';
+    let imageOptions = [];
     try {
       const fetched = await fetchPageContent(url);
       pageText = fetched.text;
       extractedImageUrl = fetched.imageUrl;
+      imageOptions = fetched.imageOptions || [];
+      // Shopify product pages expose the whole photo gallery as JSON — add
+      // those photos as choices (cheap, and many roasters run on Shopify).
+      if (/\/products\/[^/]+/i.test(url)) {
+        const shopImgs = await tryShopifyProductJson(url).catch(() => null);
+        if (shopImgs?.imageOptions?.length) addImageCandidates(imageOptions, shopImgs.imageOptions, url);
+      }
     } catch (err) {
       console.error('Page fetch error:', err.message);
 
@@ -317,6 +331,7 @@ export async function POST(request) {
       if (shop && shop.text) {
         pageText = shop.text;
         extractedImageUrl = shop.imageUrl || '';
+        imageOptions = shop.imageOptions || [];
       } else if (err.message === 'JS_RENDERED') {
         return NextResponse.json(
           { error: 'This page loads its content with JavaScript, which we can\'t read automatically. Please copy and paste the coffee details into the form manually.' },
@@ -334,6 +349,9 @@ export async function POST(request) {
         );
       }
     }
+
+    // No single "best" photo found but the page had others → default to the first.
+    if (!extractedImageUrl && imageOptions.length) extractedImageUrl = imageOptions[0];
 
     // Step 2: Send to Claude for extraction.
     // The Anthropic API can return transient 429/5xx errors (rate limit,
@@ -415,10 +433,12 @@ export async function POST(request) {
       notes: String(parsed.notes || ''),
       // Only allow http(s) image URLs (never javascript:/data: etc.).
       imageUrl: /^https?:\/\//i.test(extractedImageUrl) ? extractedImageUrl : '',
+      // Every product photo found, default first — the user picks which to show.
+      imageOptions: imageOptions.filter(u => /^https?:\/\//i.test(u)),
     };
 
     // If every field came back empty, warn the user
-    const hasData = Object.entries(result).some(([k, v]) => k !== '_warning' && v);
+    const hasData = Object.entries(result).some(([k, v]) => k !== '_warning' && k !== 'imageOptions' && v);
     if (!hasData) {
       result._warning = 'No coffee details found on this page. The page may not be a coffee product page, or the details may be loaded with JavaScript.';
     }

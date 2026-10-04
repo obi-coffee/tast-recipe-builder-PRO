@@ -8,12 +8,14 @@ import { Section, Param } from './ui';
 import DialIn from './DialIn';
 import BrewLogForm from './BrewLogForm';
 import ImmersiveBrew from './ImmersiveBrew';
+import PhotoPicker from './PhotoPicker';
 
 /**
  * Step 4 — The generated recipe, plus dial-in and re-brew controls.
  */
 export default function RecipeView({
   recipe, coffeeData, brewData, formatTemp,
+  imageOptions = [], onPhotoChange,
   savedRecipes, recipeSaved, onSave,
   dialInMode, dialInResult, dialInFeedback, setDialInFeedback, dialingIn,
   onEnterDialIn, onCancelDialIn, onSubmitDialIn,
@@ -27,6 +29,7 @@ export default function RecipeView({
   const [logged, setLogged] = useState(false);
   const [showTimer, setShowTimer] = useState(false);
   const [showMethodMenu, setShowMethodMenu] = useState(false);
+  const [showPhotoPicker, setShowPhotoPicker] = useState(false);
   useEffect(() => { setShowLog(false); setLogged(false); setShowTimer(false); setShowMethodMenu(false); }, [recipe]);
   // Signature methods available for this brewer (always includes Balanced).
   // "Best for the bean" sits first and asks the engine to choose among them.
@@ -58,14 +61,38 @@ export default function RecipeView({
 
   return (
     <div className="fade-in">
-      {/* Product Image */}
+      {/* Product Image — tap "Change photo" to pick another or upload your own */}
       <div style={{ marginBottom: 'var(--space-lg)' }}>
-        <img
-          src={coffeeData.imageUrl || '/icons/coffee-placeholder.svg'}
-          alt={coffeeData.name || 'Coffee'}
-          onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/icons/coffee-placeholder.svg'; }}
-          className="product-image"
-        />
+        <div style={{ position: 'relative' }}>
+          <img
+            key={coffeeData.imageUrl || 'placeholder'}
+            src={coffeeData.imageUrl || '/icons/coffee-placeholder.svg'}
+            alt={coffeeData.name || 'Coffee'}
+            onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/icons/coffee-placeholder.svg'; }}
+            className="product-image"
+          />
+          {onPhotoChange && (
+            <button
+              type="button"
+              onClick={() => setShowPhotoPicker(v => !v)}
+              aria-expanded={showPhotoPicker}
+              style={{
+                position: 'absolute', right: '12px', bottom: '12px',
+                background: 'rgba(0,0,0,0.55)', color: '#fff', border: 'none',
+                borderRadius: 'var(--radius-pill)', padding: '7px 12px',
+                fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+              }}
+            >
+              {showPhotoPicker ? 'Done' : 'Change photo'}
+            </button>
+          )}
+        </div>
+        {onPhotoChange && showPhotoPicker && (
+          <div style={{ marginTop: '12px' }}>
+            <PhotoPicker imageUrl={coffeeData.imageUrl || ''} options={imageOptions} onChange={onPhotoChange} />
+          </div>
+        )}
       </div>
 
       <div style={{ marginBottom: 'var(--space-lg)' }}>
