@@ -53,6 +53,10 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const userRef = useRef(null);
   useEffect(() => { userRef.current = user; }, [user]);
+  // Mirrors `recipe` so background reloads (tab refocus, auth refresh) can tell
+  // whether a recipe is on screen and must not overwrite the method behind it.
+  const recipeRef = useRef(null);
+  useEffect(() => { recipeRef.current = recipe; }, [recipe]);
   const [settings, setSettings] = useState(SETTINGS_DEFAULTS);
 
   // Appearance: 'system' follows the OS; 'light'/'dark' stamp <html data-theme>
@@ -87,7 +91,10 @@ export default function Home() {
         method: prev.method || s.method,
         device: prev.device || s.device,
         targetWeight: prev.targetWeight || s.targetWeight,
-        brewMethod: s.brewMethod || prev.brewMethod,
+        // The saved default method only pre-fills a fresh wizard. Once a recipe
+        // is on screen, keep the method the user picked — this reload also runs
+        // whenever the tab regains focus, and used to snap it back to Balanced.
+        brewMethod: recipeRef.current ? prev.brewMethod : (s.brewMethod || prev.brewMethod),
       }));
     } catch (e) {
       console.error('Failed to load data:', e);
