@@ -37,17 +37,29 @@ export function getRoastProfile(roastLevel) {
  *  - note is surfaced in brewingNotes when relevant.
  */
 export function getProcessAdjustment(processName = '') {
-  const p = String(processName).toLowerCase();
+  const p = String(processName).toLowerCase().replace(/[\u2013\u2014-]/g, ' ').replace(/\s+/g, ' ');
 
-  const isAnaerobic = p.includes('anaerobic') || p.includes('carbonic') ||
-    p.includes('fermentation') || p.includes('lactic') ||
-    p.includes('co-ferment') || p.includes('yeast') || p.includes('thermal shock') ||
-    p.includes('barrel') || p.includes('infused');
-  const isWetHulled = p.includes('wet-hulled') || p.includes('wet hulled') ||
-    p.includes('wethulled') || p.includes('giling basah') || p.includes('giling');
+  // Strong, cup-defining fermentation: sealed tanks, added cultures or fruit,
+  // temperature shocks, very long ferments. These push the recipe gently
+  // (coarser + cooler). "fermentation" (the noun) counts; the bare word
+  // "ferment" on its own does not — see controlled ferments below.
+  const isAnaerobic = p.includes('anaerobic') || p.includes('carbonic') || p.includes('macerat') ||
+    p.includes('fermentation') || p.includes('lactic') || p.includes('co ferment') ||
+    p.includes('cofer') || p.includes('yeast') || p.includes('koji') || p.includes('mosto') ||
+    p.includes('submerg') || p.includes('symbiotic') || p.includes('nitrogen') ||
+    p.includes('thermal') || p.includes('barrel') || p.includes('infused') ||
+    p.includes('extended ferment') || p.includes('double ferment');
+  // Controlled ferments on a WASHED base (cold-, dry-, hybrid). Cleaner than
+  // anaerobic — the mucilage still comes off — but denser and sweeter than a
+  // classic washed, so they get a lighter touch than the anaerobic family.
+  const isControlledFerment = p.includes('cold ferment') || p.includes('dry ferment') ||
+    p.includes('hybrid') || p.includes('cool ferment');
+  const isWetHulled = p.includes('wet hulled') || p.includes('wethulled') ||
+    p.includes('giling basah') || p.includes('giling');
   const isHoney = p.includes('honey') || p.includes('miel') || p.includes('pulped natural') ||
     p.includes('pulped');
-  const isNatural = p.includes('natural') || p.includes('dry process') || p.includes('monsooned');
+  const isNatural = p.includes('natural') || p.includes('dry process') || p.includes('monsooned') ||
+    p.includes('shade dried');
 
   // Order matters: the most specific / most aggressive families win first.
   if (isAnaerobic) {
@@ -80,6 +92,14 @@ export function getProcessAdjustment(processName = '') {
       grindTDelta: +0.03,
       tempDelta: -1,
       note: 'Natural (dry) processing carries more sugar and ferment character, so water runs a touch cooler to protect the fruit.',
+    };
+  }
+  if (isControlledFerment) {
+    return {
+      family: 'washed-ferment',
+      grindTDelta: +0.01,
+      tempDelta: -0.5,
+      note: 'A cold-, dry- or hybrid-fermented washed coffee is still a washed coffee — clean and structured — but the slower ferment builds extra sweetness, so water runs a hair cooler to keep it from turning sharp.',
     };
   }
   return { family: 'washed', grindTDelta: 0, tempDelta: 0, note: '' };

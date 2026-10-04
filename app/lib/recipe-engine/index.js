@@ -18,7 +18,7 @@ import { getElevationAdjustment } from '../../data/brewing/elevation';
 import { getFreshnessAdjustment } from '../../data/brewing/freshness';
 import { getWaterAdjustment } from '../../data/brewing/water';
 import { getFilterAdjustment, shiftTimeLabel } from '../../data/brewing/filters';
-import { getMethod } from '../../data/brewing/methods';
+import { getMethod, recommendMethod, AUTO_METHOD } from '../../data/brewing/methods';
 import { GRINDERS } from '../../data/grinders';
 import { computeGrind, grindStepHint } from './grind';
 import { buildSteps } from './steps';
@@ -82,9 +82,19 @@ export function buildRecipe({ coffeeData = {}, brewData = {}, now = Date.now() }
   // GEAR, not the coffee — like water hardness, they apply at full strength.
   const filter = getFilterAdjustment(brewData.filter, brewData.booster, brewData.device);
 
-  const method = getMethod(brewData.brewMethod);
-  const mo = (method.overrides && method.appliesTo(device, brewData.device)) ? method.overrides : null;
   const roastLevel = coffeeData.roastLevel || 'Medium';
+
+  // "Best for the bean": resolve the pseudo-method to a real one for this
+  // coffee + brewer, and remember why so the UI can explain the choice.
+  let methodReason = '';
+  let methodId = brewData.brewMethod;
+  if (methodId === AUTO_METHOD) {
+    const pick = recommendMethod({ family: proc.family, roastLevel, device, deviceName: brewData.device });
+    methodId = pick.id;
+    methodReason = pick.reason;
+  }
+  const method = getMethod(methodId);
+  const mo = (method.overrides && method.appliesTo(device, brewData.device)) ? method.overrides : null;
 
   // Learning loop: a per-coffee+gear correction the user dialed in last time
   // (e.g. "too sour" → one step finer). +grindSteps = coarser, −finer; one
@@ -321,6 +331,9 @@ export function buildRecipe({ coffeeData = {}, brewData = {}, now = Date.now() }
     adjusted,
     brewingNotes,
     method: mo ? method.id : 'balanced', // effective method (falls back if N/A)
+    methodRequested: brewData.brewMethod || 'balanced', // what the user asked for ('auto' = Best for the bean)
+    methodLabel: mo ? method.label : getMethod('balanced').label,
+    methodReason, // non-empty only when Best for the bean made the choice
     brewAlong: !NO_BREW_ALONG.has(stepStyle), // show the live timer only for timed pours
   };
 }

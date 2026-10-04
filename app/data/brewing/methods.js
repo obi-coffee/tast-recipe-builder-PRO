@@ -9,6 +9,13 @@
  * key off the device's shape (category/style); Orea recipes key off the exact
  * brewer name.
  *
+ * fit — the "Best for the bean" table. Each method may carry a `fit` with
+ * per-process-family and per-roast scores plus a one-line `why`. The
+ * recommender (recommendMethod) adds family + roast for every method the
+ * brewer supports and picks the highest; tāst Balanced scores 0 everywhere,
+ * so a specialist method must have a positive reason to win. No `fit` means
+ * the method is never auto-picked (it's still available manually).
+ *
  * Sources: Hoffmann Ultimate V60 (Hario); Tetsu Kasuya 4:6 (Hario/Philocoffea);
  * Scott Rao V60 (Hario); World AeroPress Championship; Orea brewer guides
  * (orea.uk/guides-o1, -v3, -v4, -z1, -big-boy).
@@ -19,6 +26,10 @@ const BASE_METHODS = {
     id: 'balanced', label: 'tāst Balanced',
     blurb: 'Our reliable, approachable default for any brewer.',
     appliesTo: () => true, overrides: null,
+    fit: {
+      families: {}, roasts: {},
+      why: 'Nothing about this coffee calls for a specialist recipe, so the reliable default gives the cleanest read of what the roaster intended.',
+    },
   },
   hoffmann: {
     id: 'hoffmann', label: 'Hoffmann V60',
@@ -26,6 +37,11 @@ const BASE_METHODS = {
     appliesTo: (d) => d.category === 'Pour Over' && d.style === 'filter',
     overrides: { ratio: 16.7, ratioDecimals: 1, bloom: { ratio: 2.0, seconds: 45 }, pours: 2, totalTime: '3:00–3:30', tempBump: +1, stepStyle: 'filter' },
     source: 'Hoffmann, Ultimate V60 (Hario)',
+    fit: {
+      families: { washed: 2, 'washed-ferment': 1, honey: 1, natural: 0, anaerobic: -2, 'wet-hulled': -2 },
+      roasts: { 'Light': 2, 'Light-Medium': 1, 'Medium': 0, 'Medium-Dark': -1, 'Dark': -2 },
+      why: 'A clean, lighter-roasted coffee rewards clarity — Hoffmann’s hot water and two simple pours pull out the florals and acidity without muddying them.',
+    },
   },
   kasuya46: {
     id: 'kasuya46', label: 'Kasuya 4:6',
@@ -33,6 +49,11 @@ const BASE_METHODS = {
     appliesTo: (d) => d.category === 'Pour Over' && d.style === 'filter',
     overrides: { ratio: 15, ratioDecimals: 0, grindBiasDelta: +0.2, bloom: null, pours: 5, totalTime: '3:00–3:45', stepStyle: 'kasuya', tempByRoast: { 'Light': 93, 'Light-Medium': 91, 'Medium': 88, 'Medium-Dark': 85, 'Dark': 83 } },
     source: 'Kasuya, 4:6 method (Philocoffea / Hario)',
+    fit: {
+      families: { washed: 0, 'washed-ferment': 1, honey: 1, natural: 1, anaerobic: 2, 'wet-hulled': 1 },
+      roasts: { 'Light': 0, 'Light-Medium': 0, 'Medium': 0, 'Medium-Dark': 1, 'Dark': 2 },
+      why: 'The 4:6 split sets sweetness in the first 40% and strength in the last 60% — the control a fruit-forward, fermented or darker coffee needs — and its roast-tuned cooler water keeps ferment and roastiness in check.',
+    },
   },
   rao: {
     id: 'rao', label: 'Rao Spin',
@@ -40,6 +61,11 @@ const BASE_METHODS = {
     appliesTo: (d) => d.category === 'Pour Over' && d.style === 'filter',
     overrides: { ratio: 16.4, ratioDecimals: 1, bloom: { ratio: 3.0, seconds: 45 }, pours: 1, totalTime: '3:00', stepStyle: 'rao' },
     source: 'Rao, V60 technique (Hario)',
+    fit: {
+      families: { washed: 1, 'washed-ferment': 1, honey: 1, natural: 1, anaerobic: 0, 'wet-hulled': 0 },
+      roasts: { 'Light': 0, 'Light-Medium': 1, 'Medium': 1, 'Medium-Dark': 0, 'Dark': -1 },
+      why: 'A medium-bodied coffee that isn’t chasing extremes brews most evenly with Rao’s big stirred bloom and single steady pour — the swirl flattens the bed so every gram extracts the same.',
+    },
   },
   champ_aeropress: {
     id: 'champ_aeropress', label: 'Championship AeroPress',
@@ -47,6 +73,11 @@ const BASE_METHODS = {
     appliesTo: (d) => d.style === 'aeropress',
     overrides: { ratio: 6, ratioDecimals: 0, tempOverride: 83, dose: 18, totalTime: '1:30–2:30', stepStyle: 'champ', bypassRatio: 1.4 },
     source: 'World AeroPress Championship recipes',
+    fit: {
+      families: { washed: 1, 'washed-ferment': 1, honey: 1, natural: 1, anaerobic: 2, 'wet-hulled': 0 },
+      roasts: { 'Light': 1, 'Light-Medium': 1, 'Medium': 0, 'Medium-Dark': 0, 'Dark': -1 },
+      why: 'Cooler water and a bypass dilution give a concentrated, clear cup — a lighter or fermented coffee keeps its fruit without the heaviness a full-immersion AeroPress can add.',
+    },
   },
 };
 
@@ -113,6 +144,56 @@ const OREA_RECIPES = {
   ],
 };
 
+// Fit tables for Orea maker recipes, keyed by recipe id (shared across
+// brewers). Taken from each recipe's own stated intent in the Orea guides.
+const OREA_FITS = {
+  fine: {
+    families: { washed: 2, 'washed-ferment': 1, honey: 0, natural: -1, anaerobic: -2, 'wet-hulled': -2 },
+    roasts: { 'Light': 1, 'Light-Medium': 1, 'Medium': 0, 'Medium-Dark': -1, 'Dark': -2 },
+    why: 'Orea built The Fine for washed coffees — a wide ratio and fine grind pull a sweet, punchy, juicy cup out of a clean lot.',
+  },
+  aussie: {
+    families: { washed: -1, 'washed-ferment': 0, honey: 1, natural: 1, anaerobic: 3, 'wet-hulled': 0 },
+    roasts: { 'Light': 0, 'Light-Medium': 0, 'Medium': 0, 'Medium-Dark': 0, 'Dark': 0 },
+    why: 'The Aussie doses up and grinds coarse for a delicate, tea-like cup — Orea’s own answer for taming heavy ferment so the fruit reads as fruit, not booze.',
+  },
+  og_base: {
+    families: { washed: 1, 'washed-ferment': 1, honey: 0, natural: 0, anaerobic: -1, 'wet-hulled': 0 },
+    roasts: { 'Light': 0, 'Light-Medium': 0, 'Medium': 1, 'Medium-Dark': 0, 'Dark': 0 },
+    why: 'The OG Base #2 is Orea’s flexible classic for washed coffees — four even pours that let a medium roast show its balance.',
+  },
+  wide: {
+    families: { washed: 1, 'washed-ferment': 1, honey: 0, natural: 0, anaerobic: -1, 'wet-hulled': -1 },
+    roasts: { 'Light': 1, 'Light-Medium': 1, 'Medium': 0, 'Medium-Dark': -1, 'Dark': -2 },
+    why: 'The Wide pairs a high-extraction wide ratio with a fine grind — a dense, light washed coffee has the structure to take it.',
+  },
+  bright: {
+    families: { washed: 1, 'washed-ferment': 0, honey: 1, natural: 0, anaerobic: -1, 'wet-hulled': -1 },
+    roasts: { 'Light': 1, 'Light-Medium': 1, 'Medium': 0, 'Medium-Dark': -1, 'Dark': -1 },
+    why: 'The Bright’s easy 75/75/150 cadence keeps a clean lighter roast lively and sweet.',
+  },
+  four_six: {
+    families: { washed: 0, 'washed-ferment': 0, honey: 1, natural: 1, anaerobic: 1, 'wet-hulled': 1 },
+    roasts: { 'Light': 0, 'Light-Medium': 0, 'Medium': 0, 'Medium-Dark': 1, 'Dark': 2 },
+    why: 'Kasuya’s 4:6 split, Orea’s way — the first 40% sets balance and the last 60% sets strength, which gives a darker or fermented coffee the control it needs.',
+  },
+  so_soft: {
+    families: { washed: 0, 'washed-ferment': 0, honey: 1, natural: 1, anaerobic: 0, 'wet-hulled': 0 },
+    roasts: { 'Light': 0, 'Light-Medium': 0, 'Medium': 0, 'Medium-Dark': 1, 'Dark': 1 },
+    why: 'The So Soft is a soft, clean conical recipe — it rounds off a sweeter natural or honey, or a darker roast, without pushing it.',
+  },
+  base: {
+    families: { washed: 2, 'washed-ferment': 2, honey: 2, natural: 2, anaerobic: 2, 'wet-hulled': 2 },
+    roasts: { 'Light': 0, 'Light-Medium': 0, 'Medium': 0, 'Medium-Dark': 0, 'Dark': 0 },
+    why: 'The Big Boy is a batch brewer — Orea’s own Base recipe keeps the bed fed with big pours at this volume, where single-cup champion recipes don’t scale as cleanly.',
+  },
+  dara: {
+    families: { washed: 0, 'washed-ferment': 0, honey: 1, natural: 1, anaerobic: 0, 'wet-hulled': 0 },
+    roasts: { 'Light': 0, 'Light-Medium': 0, 'Medium': 0, 'Medium-Dark': 0, 'Dark': 0 },
+    why: 'The Dara is a clean, juicy, balanced brew — a natural or honey keeps its fruit without the recipe getting in the way.',
+  },
+};
+
 function buildOreaMethods() {
   const out = {};
   for (const [deviceName, recipes] of Object.entries(OREA_RECIPES)) {
@@ -133,6 +214,8 @@ function buildOreaMethods() {
           hotFraction: r.water / total, iceFraction: ice / total, bypassFraction: bypass / total,
         },
         source: `Orea guide (${deviceName})`,
+        fit: OREA_FITS[r.id] || null,
+        maker: true, // written for this exact brewer
       };
     }
   }
@@ -152,4 +235,54 @@ export function methodsForDevice(device, deviceName) {
   return Object.values(METHODS)
     .filter(m => m.appliesTo(device, deviceName))
     .map(m => ({ id: m.id, label: m.label, blurb: m.blurb }));
+}
+
+// ── "Best for the bean" ──────────────────────────────────────────────
+// A pseudo-method id. When brewData.brewMethod is AUTO_METHOD, the engine asks
+// recommendMethod() to pick the real method for this coffee + brewer, and the
+// recipe reports which one it used and why.
+export const AUTO_METHOD = 'auto';
+export const AUTO_METHOD_META = {
+  id: AUTO_METHOD,
+  label: 'Best for the bean',
+  blurb: 'Let the brew brain choose the method for this coffee.',
+};
+
+// Plain-language names for the engine's process families, used in the "why".
+const FAMILY_WORDS = {
+  washed: 'washed', 'washed-ferment': 'controlled-ferment washed', honey: 'honey-process',
+  natural: 'natural', anaerobic: 'fermented', 'wet-hulled': 'wet-hulled',
+};
+
+/**
+ * Pick the best method for a coffee on a given brewer. Deterministic: same
+ * inputs → same pick. Scores every method the brewer supports as
+ * fit.families[family] + fit.roasts[roast], plus MAKER_BONUS for a recipe the
+ * brewer's maker wrote for that exact brewer; highest wins; a tie goes to the
+ * maker recipe, otherwise to the earlier entry in METHODS.
+ *
+ * @param {object} args
+ * @param {string} args.family     process family from getProcessAdjustment()
+ * @param {string} args.roastLevel one of ROAST_LEVELS (blank → Medium)
+ * @param {object} args.device     device object from getDevice()
+ * @param {string} args.deviceName exact brewer name (for Orea recipes)
+ * @returns {{ id: string, label: string, score: number, reason: string }}
+ */
+// A recipe the brewer's maker wrote for that exact brewer gets a small edge
+// over a generic champion recipe when the two are otherwise close.
+export const MAKER_BONUS = 1;
+
+export function recommendMethod({ family = 'washed', roastLevel = 'Medium', device, deviceName } = {}) {
+  const roast = roastLevel || 'Medium';
+  let best = null;
+  for (const m of Object.values(METHODS)) {
+    if (!m.fit || !m.appliesTo(device, deviceName)) continue;
+    const score = (m.fit.families[family] ?? 0) + (m.fit.roasts[roast] ?? 0) + (m.maker ? MAKER_BONUS : 0);
+    const wins = !best || score > best.score || (score === best.score && m.maker && !best.maker);
+    if (wins) best = { id: m.id, label: m.label, score, why: m.fit.why, maker: !!m.maker };
+  }
+  if (!best) best = { id: DEFAULT_METHOD, label: METHODS[DEFAULT_METHOD].label, score: 0, why: METHODS[DEFAULT_METHOD].fit.why };
+  const famWord = FAMILY_WORDS[family] || family;
+  const lead = `For a ${roast.toLowerCase()}-roast ${famWord} coffee on the ${deviceName || 'brewer'}, Best for the bean chose ${best.label}.`;
+  return { id: best.id, label: best.label, score: best.score, reason: `${lead} ${best.why}` };
 }

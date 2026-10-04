@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BREW_METHODS } from '../data/brewing-options';
 import { getDevice } from '../data/brewing/devices';
-import { methodsForDevice } from '../data/brewing/methods';
+import { methodsForDevice, AUTO_METHOD, AUTO_METHOD_META } from '../data/brewing/methods';
 import { scaleRecipe, recipeToModel, parseNum } from '../lib/recipe-scale';
 import { buildBrewInsights, coffeeDisplayName } from '../lib/brew-insights';
 import { Section, Param } from './ui';
@@ -29,7 +29,9 @@ export default function RecipeView({
   const [showMethodMenu, setShowMethodMenu] = useState(false);
   useEffect(() => { setShowLog(false); setLogged(false); setShowTimer(false); setShowMethodMenu(false); }, [recipe]);
   // Signature methods available for this brewer (always includes Balanced).
-  const availableMethods = methodsForDevice(getDevice(brewData.device), brewData.device);
+  // "Best for the bean" sits first and asks the engine to choose among them.
+  const deviceMethods = methodsForDevice(getDevice(brewData.device), brewData.device);
+  const availableMethods = deviceMethods.length > 1 ? [AUTO_METHOD_META, ...deviceMethods] : deviceMethods;
 
   // Editable weights (ratio anchor). Resets whenever a new recipe is generated.
   const [model, setModel] = useState(() => recipeToModel(recipe));
@@ -97,7 +99,13 @@ export default function RecipeView({
       {/* Signature method picker — sits below the coffee's description */}
       {availableMethods.length > 1 && (() => {
         const activeId = activeMethod || 'balanced';
+        const isAuto = activeId === AUTO_METHOD;
         const activeObj = availableMethods.find(m => m.id === activeId) || availableMethods[0];
+        // When Best for the bean is on, the trigger names the method it chose
+        // and the line beneath explains why. A hand-picked method shows its
+        // own one-line description instead.
+        const chosenLabel = isAuto ? (recipe.methodLabel || deviceMethods.find(m => m.id === recipe.method)?.label || '') : '';
+        const explain = isAuto ? recipe.methodReason : (activeObj?.blurb || '');
         return (
           <div style={{ marginBottom: 'var(--space-lg)' }}>
             <div className="eyebrow" style={{ marginBottom: '10px' }}>Method</div>
@@ -109,7 +117,10 @@ export default function RecipeView({
                 aria-haspopup="listbox"
                 aria-expanded={showMethodMenu}
               >
-                <span>{activeObj?.label || 'tāst Balanced'}</span>
+                <span>
+                  {activeObj?.label || 'tāst Balanced'}
+                  {isAuto && chosenLabel && <span className="method-chosen"> · {chosenLabel}</span>}
+                </span>
                 <img src="/icons/chevron-down.svg" alt="" className="notion-icon notion-icon-secondary chev" />
               </button>
               {showMethodMenu && (
@@ -121,7 +132,7 @@ export default function RecipeView({
                         key={m.id}
                         role="option"
                         aria-selected={m.id === activeId}
-                        className={`method-option${m.id === activeId ? ' active' : ''}`}
+                        className={`method-option${m.id === activeId ? ' active' : ''}${m.id === AUTO_METHOD ? ' auto' : ''}`}
                         onClick={() => { if (m.id !== activeId && onSelectMethod) onSelectMethod(m.id); setShowMethodMenu(false); }}
                       >
                         {m.label}
@@ -132,6 +143,9 @@ export default function RecipeView({
                 </>
               )}
             </div>
+            {explain && (
+              <p className="method-why" data-testid="method-why">{explain}</p>
+            )}
           </div>
         );
       })()}

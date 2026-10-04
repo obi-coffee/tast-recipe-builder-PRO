@@ -1,4 +1,4 @@
-import { ROAST_LEVELS, PROCESSES } from '../data/brewing-options';
+import { ROAST_LEVELS, PROCESS_GROUPS } from '../data/brewing-options';
 import { Row, Field, Select } from './ui';
 
 /**
@@ -86,7 +86,7 @@ export default function StepCoffee({
         </Row>
         <Row>
           <Field label="Elevation" value={coffeeData.elevation} onChange={v => setCoffeeData({...coffeeData, elevation: v})} placeholder="MASL" />
-          <Select label="Process" value={coffeeData.process} onChange={v => setCoffeeData({...coffeeData, process: v})} options={PROCESSES} />
+          <Select label="Process" value={coffeeData.process} onChange={v => setCoffeeData({...coffeeData, process: v})} groups={PROCESS_GROUPS} />
         </Row>
         <Row>
           <Select label="Roast" value={coffeeData.roastLevel} onChange={v => setCoffeeData({...coffeeData, roastLevel: v})} options={ROAST_LEVELS} />

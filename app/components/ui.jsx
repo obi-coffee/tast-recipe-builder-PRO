@@ -38,7 +38,12 @@ export function Field({ label, value, onChange, placeholder }) {
   );
 }
 
-export function Select({ label, value, onChange, options }) {
+/**
+ * Native select. Pass `options` (flat list of strings) or `groups`
+ * ([{ label, options }]) — groups render as <optgroup> headings, which keeps
+ * long lists navigable on the iOS/Android pickers without any custom UI.
+ */
+export function Select({ label, value, onChange, options, groups }) {
   const id = useId();
   return (
     <div>
@@ -70,7 +75,13 @@ export function Select({ label, value, onChange, options }) {
         }}
       >
         <option value="" style={{ color: 'var(--text-placeholder)' }}>Select...</option>
-        {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+        {groups
+          ? groups.map(g => (
+              <optgroup key={g.label} label={g.label}>
+                {g.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </optgroup>
+            ))
+          : options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
       </select>
     </div>
   );
